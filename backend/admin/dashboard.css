@@ -1,0 +1,83 @@
+:root {
+  --primary: #111;
+  --accent: #c9a96e;
+  --bg: #f5f5f5;
+  --card: #fff;
+  --border: #ddd;
+  --text: #333;
+  --muted: #777;
+  --danger: #c0392b;
+  --success: #27ae60;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+/* Login */
+.login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-card { background: var(--card); padding: 2rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 360px; }
+.login-card h1 { font-size: 1.5rem; margin-bottom: 1.5rem; text-align: center; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+.form-group input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+.btn { padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: 500; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-secondary { background: var(--border); color: var(--text); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-success { background: var(--success); color: #fff; }
+.error-message { color: var(--danger); margin-top: 0.5rem; font-size: 0.9rem; }
+
+/* Admin Layout */
+.admin-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+.admin-header h1 { font-size: 1.25rem; }
+.admin-nav { display: flex; gap: 0.5rem; }
+.nav-tab { background: transparent; border: none; padding: 0.5rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; font-weight: 500; color: var(--muted); }
+.nav-tab.active { color: var(--primary); border-bottom-color: var(--accent); }
+.admin-main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+/* Tabs */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Section Header */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.section-header h2 { font-size: 1.25rem; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+th { background: #fafafa; font-weight: 600; }
+tr:hover { background: #fafafa; }
+.actions { display: flex; gap: 0.5rem; }
+.actions button { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+
+/* Modal */
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; }
+.modal.active { display: flex; }
+.modal-content { background: var(--card); padding: 2rem; border-radius: 8px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; }
+.close-btn { position: absolute; top: 1rem; right: 1rem; font-size: 1.5rem; cursor: pointer; color: var(--muted); }
+.modal-content h2 { margin-bottom: 1rem; }
+.modal-content .form-group { margin-bottom: 1rem; }
+.modal-content .form-group label { display: block; margin-bottom: 0.25rem; font-weight: 500; }
+.modal-content .form-group input,
+.modal-content .form-group textarea,
+.modal-content .form-group select { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; }
+.modal-content .form-group textarea { min-height: 100px; resize: vertical; }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+
+/* Badge */
+.badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+.badge-available { background: #e8f5e9; color: #2e7d32; }
+.badge-preorder { background: #e3f2fd; color: #1565c0; }
+.badge-sold { background: #ffebee; color: #c62828; }
+.badge-closed { background: #f5f5f5; color: #616161; }
+.badge-pending { background: #fff3e0; color: #ef6c00; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .admin-header { flex-direction: column; gap: 1rem; align-items: flex-start; }
+  .admin-nav { flex-wrap: wrap; }
+  .admin-main { padding: 1rem; }
+  table { font-size: 0.8rem; }
+  th, td { padding: 0.5rem; }
+}

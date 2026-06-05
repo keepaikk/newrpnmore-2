@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ContactLead {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  service   String
+  message   String
+  createdAt DateTime @default(now())
+}
+
+model CarLead {
+  id              String   @id @default(cuid())
+  name            String
+  carModel        String
+  budget          String
+  budgetCurrency  String   @default("USD")
+  destinationPort String
+  notes           String?
+  createdAt       DateTime @default(now())
+}
+
+model PropertyLead {
+  id               String   @id @default(cuid())
+  name             String
+  propertyInterest String
+  budget           String
+  timeline         String
+  createdAt        DateTime @default(now())
+}
+
+model AiLead {
+  id            String   @id @default(cuid())
+  name          String
+  businessName  String
+  need          String
+  createdAt     DateTime @default(now())
+}
+
+model BlogPost {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  category  String
+  author    String
+  date      String
+  excerpt   String
+  content   String
+  imageUrl  String?
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CarListing {
+  id          String   @id @default(cuid())
+  title       String
+  imageUrl    String?
+  year        String?
+  engine      String
+  mileage     String
+  specs       String
+  price       String
+  currency    String   @default("USD")
+  priceNote   String?
+  shipping    String
+  status      String   @default("preorder")
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PropertyListing {
+  id          String   @id @default(cuid())
+  title       String
+  imageUrl    String?
+  location    String
+  size        String
+  roi         String
+  price       String
+  status      String   @default("available")
+  featured    Boolean  @default(false)
+  badge       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  text      String
+  rating    Int      @default(5)
+  featured  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model HeroImage {
+  id        String   @id @default(cuid())
+  page      String   @unique
+  imageUrl  String
+  altText   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Book {
+  id            String   @id @default(cuid())
+  title         String
+  author        String
+  description   String?
+  coverImageUrl String?
+  pdfUrl        String?
+  publishedYear String?
+  category      String   @default("General")
+  price         String?
+  featured      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

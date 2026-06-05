@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RPNMore Admin Dashboard</title>
+  <link rel="stylesheet" href="/admin/dashboard.css">
+</head>
+<body>
+  <header class="admin-header">
+    <h1>RPNMore Admin</h1>
+    <nav class="admin-nav">
+      <button class="nav-tab active" data-tab="leads">Leads</button>
+      <button class="nav-tab" data-tab="blog-posts">Blog Posts</button>
+      <button class="nav-tab" data-tab="car-listings">Car Listings</button>
+      <button class="nav-tab" data-tab="property-listings">Property Listings</button>
+      <button class="nav-tab" data-tab="testimonials">Testimonials</button>
+      <button class="nav-tab" data-tab="hero-images">Hero Images</button>
+      <button class="nav-tab" data-tab="books">Books</button>
+    </nav>
+    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+  </header>
+
+  <main class="admin-main">
+    <!-- Leads Tab -->
+    <section id="tab-leads" class="tab-panel active">
+      <div class="section-header">
+        <h2>Leads</h2>
+        <select id="lead-filter">
+          <option value="all">All Types</option>
+          <option value="contact">Contact</option>
+          <option value="car">Car Inquiry</option>
+          <option value="property">Property Inquiry</option>
+          <option value="ai">AI & Digital</option>
+        </select>
+      </div>
+      <div id="leads-table-container"></div>
+    </section>
+
+    <!-- Blog Posts Tab -->
+    <section id="tab-blog-posts" class="tab-panel">
+      <div class="section-header">
+        <h2>Blog Posts</h2>
+        <button class="btn btn-primary" onclick="openModal('blog-post')">Add Post</button>
+      </div>
+      <div id="blog-posts-table-container"></div>
+    </section>
+
+    <!-- Car Listings Tab -->
+    <section id="tab-car-listings" class="tab-panel">
+      <div class="section-header">
+        <h2>Car Listings</h2>
+        <button class="btn btn-primary" onclick="openModal('car-listing')">Add Listing</button>
+      </div>
+      <div id="car-listings-table-container"></div>
+    </section>
+
+    <!-- Property Listings Tab -->
+    <section id="tab-property-listings" class="tab-panel">
+      <div class="section-header">
+        <h2>Property Listings</h2>
+        <button class="btn btn-primary" onclick="openModal('property-listing')">Add Listing</button>
+      </div>
+      <div id="property-listings-table-container"></div>
+    </section>
+
+    <!-- Testimonials Tab -->
+    <section id="tab-testimonials" class="tab-panel">
+      <div class="section-header">
+        <h2>Testimonials</h2>
+        <button class="btn btn-primary" onclick="openModal('testimonial')">Add Testimonial</button>
+      </div>
+      <div id="testimonials-table-container"></div>
+    </section>
+
+    <!-- Hero Images Tab -->
+    <section id="tab-hero-images" class="tab-panel">
+      <div class="section-header">
+        <h2>Hero Images</h2>
+        <button class="btn btn-primary" onclick="openModal('hero-image')">Add Hero Image</button>
+      </div>
+      <div id="hero-images-table-container"></div>
+    </section>
+
+    <!-- Books Tab -->
+    <section id="tab-books" class="tab-panel">
+      <div class="section-header">
+        <h2>Books</h2>
+        <button class="btn btn-primary" onclick="openModal('book')">Add Book</button>
+      </div>
+      <div id="books-table-container"></div>
+    </section>
+  </main>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">&times;</span>
+      <h2 id="modal-title">Create</h2>
+      <form id="modal-form"></form>
+    </div>
+  </div>
+
+  <script src="/admin/dashboard.js"></script>
+</body>
+</html>

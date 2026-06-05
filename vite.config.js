@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig({
   server: {
@@ -6,6 +7,25 @@ export default defineConfig({
     port: 5173,
     watch: {
       usePolling: true,
+    },
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/admin': 'http://localhost:3000',
+      '/uploads': 'http://localhost:3000',
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        cars: resolve(__dirname, 'cars.html'),
+        'real-estate': resolve(__dirname, 'real-estate.html'),
+        'digital-services': resolve(__dirname, 'digital-services.html'),
+        blog: resolve(__dirname, 'blog.html'),
+        about: resolve(__dirname, 'about.html'),
+        contact: resolve(__dirname, 'contact.html'),
+        books: resolve(__dirname, 'books.html'),
+      },
     },
   },
 });

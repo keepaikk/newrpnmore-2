@@ -1,12 +1,32 @@
 version: '3.8'
 
 services:
-  web:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: rpnmore
+      POSTGRES_PASSWORD: rpnmore_secret
+      POSTGRES_DB: rpnmore_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
     build: .
     ports:
-      - "5173:5173"
-    volumes:
-      - .:/app
-      - /app/node_modules
+      - "3000:3000"
     environment:
-      - NODE_ENV=development
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://rpnmore:rpnmore_secret@db:5432/rpnmore_db?schema=public
+      - SESSION_SECRET=change-this-to-a-randomly-generated-secret-key
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD_HASH=
+    depends_on:
+      - db
+    volumes:
+      - ./public:/app/public:ro
+      - ./backend/uploads:/app/backend/uploads
+
+volumes:
+  postgres_data:

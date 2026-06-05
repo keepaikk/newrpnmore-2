@@ -26,12 +26,14 @@
       </a>
       <nav class="nav-links">
         <a href="/index.html" class="nav-link active">Home</a>
-        <a href="/cars.html" class="nav-link">Cars</a>
-        <a href="/real-estate.html" class="nav-link">Real Estate</a>
+        <a href="/cars.html" class="nav-link">DBG</a>
+        <a href="/real-estate.html" class="nav-link">Properties</a>
         <a href="/digital-services.html" class="nav-link">AI & Digital</a>
         <a href="/blog.html" class="nav-link">Blog</a>
         <a href="/about.html" class="nav-link">About</a>
-        <a href="/contact.html" class="nav-link">Contact</a>
+        <a href="/books.html" class="nav-link">Books</a>
+        
+    <a href="/contact.html" class="nav-link">Contact</a>
       </nav>
       <div class="nav-ctas">
         <a href="#" class="btn btn-whatsapp btn-sm" onclick="triggerWhatsAppChat('Hello RPNMore, I would like to schedule a business consultation.'); return false;">
@@ -46,11 +48,13 @@
   <div class="mobile-nav">
     <button class="close-menu-btn" aria-label="Close navigation menu">×</button>
     <a href="/index.html" class="nav-link active">Home</a>
-    <a href="/cars.html" class="nav-link">Cars</a>
-    <a href="/real-estate.html" class="nav-link">Real Estate</a>
+    <a href="/cars.html" class="nav-link">DBG</a>
+    <a href="/real-estate.html" class="nav-link">Properties</a>
     <a href="/digital-services.html" class="nav-link">AI & Digital</a>
     <a href="/blog.html" class="nav-link">Blog</a>
     <a href="/about.html" class="nav-link">About</a>
+    <a href="/books.html" class="nav-link">Books</a>
+        
     <a href="/contact.html" class="nav-link">Contact</a>
     <a href="#" class="btn btn-whatsapp" onclick="triggerWhatsAppChat('Hello RPNMore, I am visiting your site and want to discuss cross-border opportunities.'); return false;">
       Start on WhatsApp
@@ -60,7 +64,7 @@
   <!-- Hero Section -->
   <section class="hero">
     <!-- Using the background image generated according to specification rule -->
-    <div class="hero-bg" style="background-image: url('/hero_wealth_bridge.png');"></div>
+    <div id="hero-bg" class="hero-bg" data-page="index" style="background-image: url('/hero_wealth_bridge.png');"></div>
     <div class="container">
       <div class="hero-content">
         <span class="section-tag">UAE – Africa Commerce</span>
@@ -160,7 +164,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
             </svg>
           </div>
-          <h3>Car Export & Preorder</h3>
+          <h3>DBG — Dobuygoods</h3>
           <p>Sourcing premium UAE showroom vehicles and delivering them safely to major African ports with full customs coordination.</p>
           <ul class="service-includes">
             <li>
@@ -179,7 +183,7 @@
           <div class="service-payment">
             <span class="accent-text">Payment Options:</span> Bank Transfer, Mobile Money, Crypto
           </div>
-          <a href="/cars.html" class="btn btn-secondary btn-sm" style="margin-top: 1.5rem;">Explore Vehicle Export</a>
+          <a href="/cars.html" class="btn btn-secondary btn-sm" style="margin-top: 1.5rem;">Explore DBG</a>
         </div>
 
         <!-- Service Card 2 -->
@@ -742,6 +746,36 @@
     </div>
   </section>
 
+  <!-- Gallery Section -->
+  <section class="gallery-section">
+    <div class="container">
+      <div class="text-center" style="margin-bottom: 3rem;">
+        <span class="section-tag">Visual Proof</span>
+        <h2 class="section-title">Gallery</h2>
+        <p class="section-desc">A glimpse into our Dubai operations, showroom inspections, and delivered assets.</p>
+      </div>
+
+      <div class="gallery-grid">
+        <div class="gallery-card">
+          <img src="/luxury_car_export.png" alt="Dubai Showroom Vehicle">
+          <span class="gallery-label">Dubai Showroom</span>
+        </div>
+        <div class="gallery-card">
+          <img src="/luxury_real_estate.png" alt="Verified Property">
+          <span class="gallery-label">Verified Properties</span>
+        </div>
+        <div class="gallery-card">
+          <div class="gallery-placeholder" style="background: linear-gradient(135deg, #101f42 0%, #030712 100%); display:flex; align-items:center; justify-content:center;">
+            <svg width="60" height="60" fill="none" stroke="var(--accent)" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <span class="gallery-label">Client Handover</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Final CTA Section -->
   <section class="cta-section">
     <div class="cta-glow"></div>
@@ -776,13 +810,14 @@
             <a href="#" class="footer-social-link" aria-label="LinkedIn">LN</a>
             <a href="#" class="footer-social-link" aria-label="Twitter">TW</a>
             <a href="#" class="footer-social-link" aria-label="YouTube">YT</a>
+            <a href="https://www.facebook.com/Dobuygoods" class="footer-social-link" aria-label="Facebook">FB</a>
           </div>
         </div>
 
         <div class="footer-col">
           <h4>Our Services</h4>
           <ul class="footer-links">
-            <li><a href="/cars.html">Car Export & Preorder</a></li>
+            <li><a href="/cars.html">DBG — Dobuygoods</a></li>
             <li><a href="/real-estate.html">Real Estate Investment</a></li>
             <li><a href="/digital-services.html">AI & Automation Solutions</a></li>
             <li><a href="/index.html#payments">Compliance & Payments</a></li>
