@@ -120,12 +120,39 @@ app.get('/admin', requireAuthPage, (req, res) => {
 
 // Frontend static files (Vite build output)
 const distPath = path.join(__dirname, '..', '..', 'dist');
+console.log('[Server] Resolved distPath:', distPath);
+console.log('[Server] distPath exists:', fs.existsSync(distPath));
+if (fs.existsSync(distPath)) {
+  const files = fs.readdirSync(distPath);
+  console.log('[Server] dist contents:', files);
+}
+
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 
   // Clean URL aliases for HTML pages
-  app.get('/books', (_req, res) => {
-    res.sendFile(path.join(distPath, 'books.html'));
+  const pageRoutes = [
+    'cars',
+    'real-estate',
+    'digital-services',
+    'blog',
+    'about',
+    'contact',
+    'books',
+  ];
+  for (const page of pageRoutes) {
+    app.get(`/${page}`, (_req, res) => {
+      res.sendFile(path.join(distPath, `${page}.html`));
+    });
+  }
+
+  // SPA fallback for everything else (e.g., direct URL visits, refreshes)
+  app.get('*', (req, res) => {
+    // Don't fallback for API or admin routes
+    if (req.path.startsWith('/api/') || req.path.startsWith('/admin/') || req.path.startsWith('/uploads/')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 } else {
   app.get('/', (req, res) => {
@@ -133,6 +160,6 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`RPNMore backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`RPNMore backend running on http://0.0.0.0:${PORT}`);
 });
