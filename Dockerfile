@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 COPY package*.json ./
@@ -8,12 +8,9 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve with Node.js backend
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
-
-# Install dependencies for Prisma (OpenSSL is required for the query engine)
-RUN apk add --no-cache openssl
 
 # Copy backend package files and install dependencies cleanly
 COPY backend/package*.json ./backend/
