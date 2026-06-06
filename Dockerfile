@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
@@ -12,18 +12,20 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies for Prisma
+# Install dependencies for Prisma (OpenSSL is required for the query engine)
 RUN apk add --no-cache openssl
 
-# Copy backend package files and install
+# Copy backend package files and install dependencies cleanly
 COPY backend/package*.json ./backend/
-RUN cd backend && npm install
+RUN cd backend && npm ci
 
-# Copy backend source
+# Copy backend source (schema.prisma must be present before generate)
 COPY backend/ ./backend/
 
-# Generate Prisma Client (needs schema.prisma to exist)
-RUN cd backend && npx prisma generate
+# Generate Prisma Client explicitly using the local binary
+RUN cd backend && \
+    ./node_modules/.bin/prisma generate --schema=prisma/schema.prisma && \
+    ls -la node_modules/.prisma/client/
 
 # Copy built frontend assets from stage 1
 COPY --from=builder /app/dist ./dist

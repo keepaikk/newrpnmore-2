@@ -3,11 +3,14 @@ set -e
 
 cd backend
 
-# Ensure Prisma Client is generated (safety net for production)
-npx prisma generate
+echo "=== Generating Prisma Client ==="
+./node_modules/.bin/prisma generate --schema=prisma/schema.prisma
 
-# Run Prisma migrations before starting the app
-npx prisma migrate deploy
+echo "=== Verifying generated client ==="
+ls -la node_modules/.prisma/client/ | head -5
+
+echo "=== Running database migrations ==="
+./node_modules/.bin/prisma migrate deploy --schema=prisma/schema.prisma
 
 cd /app
 exec "$@"
