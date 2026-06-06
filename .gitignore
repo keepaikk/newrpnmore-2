@@ -20,6 +20,11 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+# Session artifacts
+admin_cookies.txt
+backend/admin_cookies2.txt
+backend/cookies.txt
+
 # Editor
 .vscode/
 .idea/
