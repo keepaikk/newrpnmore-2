@@ -22,6 +22,9 @@ RUN cd backend && npm install
 # Copy backend source
 COPY backend/ ./backend/
 
+# Generate Prisma Client (needs schema.prisma to exist)
+RUN cd backend && npx prisma generate
+
 # Copy built frontend assets from stage 1
 COPY --from=builder /app/dist ./dist
 
