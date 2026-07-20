@@ -80,4 +80,21 @@ tr:hover { background: #fafafa; }
   .admin-main { padding: 1rem; }
   table { font-size: 0.8rem; }
   th, td { padding: 0.5rem; }
+
+  /* Make tables horizontally scrollable */
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+
+  /* Modal full width on small screens */
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+    margin: 0 0.5rem;
+  }
+
+  /* Form inputs touch-friendly */
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 1rem; /* prevents iOS zoom */
+  }
 }

@@ -93,13 +93,14 @@ model PropertyListing {
 }
 
 model Testimonial {
-  id        String   @id @default(cuid())
-  name      String
-  role      String
-  text      String
-  rating    Int      @default(5)
-  featured  Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  name       String
+  role       String
+  text       String
+  rating     Int      @default(5)
+  featured   Boolean  @default(false)
+  projectUrl String?
+  createdAt  DateTime @default(now())
 }
 
 model HeroImage {
@@ -119,6 +120,7 @@ model Book {
   description   String?
   coverImageUrl String?
   pdfUrl        String?
+  gumroadUrl    String?
   publishedYear String?
   category      String   @default("General")
   price         String?

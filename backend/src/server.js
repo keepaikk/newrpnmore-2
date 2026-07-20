@@ -1,6 +1,8 @@
 import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -11,6 +13,7 @@ import leadsRouter from './routes/leads.js';
 import cmsRouter from './routes/cms.js';
 import { requireAuth, requireAuthPage, loginHandler, logoutHandler } from './middleware/auth.js';
 import { prisma } from './lib/prisma.js';
+import { router as telegramRouter, registerWebhook } from './routes/telegram.js';
 
 dotenv.config();
 
@@ -19,10 +22,61 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
-app.use(cors({ origin: true, credentials: true }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+/* ─── Security Headers (Helmet) ─── */
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https:", "blob:"],
+      scriptSrc: ["'self'"],
+      connectSrc: ["'self'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // needed for Google Fonts
+}));
+
+/* ─── CORS — restrict to production domain ─── */
+const allowedOrigins = IS_PROD
+  ? [process.env.APP_URL].filter(Boolean)
+  : ['http://localhost:5173', 'http://localhost:3000'];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+/* ─── Rate Limiting ─── */
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again later.' },
+});
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const leadsLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many submissions. Please try again later.' },
+});
+
+app.use(generalLimiter);
 
 // File upload setup
 const uploadsDir = path.join(__dirname, '..', 'uploads');
@@ -55,21 +109,30 @@ const pdfUpload = multer({
   },
 });
 
+/* ─── Session Hardening ─── */
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  console.error('[FATAL] SESSION_SECRET environment variable is required');
+  process.exit(1);
+}
+
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'default-secret-change-me',
-    resave: true,
-    saveUninitialized: true,
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    name: 'rpnmore.sid',
     cookie: {
       httpOnly: true,
-      secure: process.env.SECURE_COOKIES === 'true',
+      secure: IS_PROD,
+      sameSite: 'strict',
       maxAge: 1000 * 60 * 60 * 24, // 24 hours
     },
   })
 );
 
-// Auth routes
-app.post('/api/auth/login', loginHandler);
+// Auth routes — strict rate limit on login
+app.post('/api/auth/login', strictLimiter, loginHandler);
 app.post('/api/auth/logout', logoutHandler);
 
 // Image upload endpoint (protected)
@@ -89,8 +152,11 @@ app.post('/api/upload-pdf', requireAuth, pdfUpload.single('file'), (req, res) =>
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
 
-// Leads API
-app.use('/api/leads', leadsRouter);
+// Leads API — rate limited to prevent spam
+app.use('/api/leads', leadsLimiter, leadsRouter);
+
+// Telegram bot webhook
+app.use('/api/telegram', telegramRouter);
 
 // Public hero image endpoint
 app.get('/api/hero-images/:page', async (req, res) => {
@@ -99,12 +165,27 @@ app.get('/api/hero-images/:page', async (req, res) => {
     if (!item) return res.status(404).json({ error: 'Not found' });
     res.json(item);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('[HeroImages] Error:', err.message);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// CMS API (protected)
-app.use('/api/cms', requireAuth, cmsRouter);
+// Health check endpoint (used by Dokploy / Docker / load balancers)
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  } catch (err) {
+    console.error('[Health] DB check failed:', err.message);
+    res.status(503).json({ status: 'error', message: 'Database unavailable' });
+  }
+});
+
+// CMS API — GET is public (frontend reads), POST/PUT/DELETE require admin auth
+app.use('/api/cms', (req, res, next) => {
+  if (req.method === 'GET') return next();
+  return requireAuth(req, res, next);
+}, cmsRouter);
 
 // Admin dashboard static files
 const adminPath = path.join(__dirname, '..', 'admin');
@@ -120,12 +201,6 @@ app.get('/admin', requireAuthPage, (req, res) => {
 
 // Frontend static files (Vite build output)
 const distPath = path.join(__dirname, '..', '..', 'dist');
-console.log('[Server] Resolved distPath:', distPath);
-console.log('[Server] distPath exists:', fs.existsSync(distPath));
-if (fs.existsSync(distPath)) {
-  const files = fs.readdirSync(distPath);
-  console.log('[Server] dist contents:', files);
-}
 
 if (fs.existsSync(distPath)) {
   app.use(express.static(distPath));
@@ -139,6 +214,9 @@ if (fs.existsSync(distPath)) {
     'about',
     'contact',
     'books',
+    'our-works',
+    'signup-ghana',
+    'wealth-assets',
   ];
   for (const page of pageRoutes) {
     app.get(`/${page}`, (_req, res) => {
@@ -160,6 +238,16 @@ if (fs.existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+/* ─── Global Error Handler — never leak stack traces or DB errors ─── */
+app.use((err, _req, res, _next) => {
+  console.error('[Error]', err.message);
+  if (err.message?.includes('CORS')) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`RPNMore backend running on http://0.0.0.0:${PORT}`);
+  await registerWebhook();
 });

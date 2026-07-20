@@ -1,9 +1,23 @@
 // Admin Dashboard JS
 
 const API_BASE = '';
+
+/* ─── XSS Protection: escape HTML before innerHTML ─── */
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let currentTab = 'leads';
 let editingId = null;
 let editingType = null;
+const PAGE_SIZE = 20;
+const pageState = { leads: 1, 'blog-posts': 1, 'car-listings': 1, 'property-listings': 1, testimonials: 1, 'hero-images': 1, books: 1 };
 
 // Tab switching
 function initTabs() {
@@ -15,6 +29,7 @@ function initTabs() {
       const tab = btn.dataset.tab;
       document.getElementById(`tab-${tab}`).classList.add('active');
       currentTab = tab;
+      pageState[tab] = 1;
       loadTabData(tab);
     });
   });
@@ -59,17 +74,26 @@ async function loadLeads() {
       return;
     }
 
+    const totalPages = Math.ceil(rows.length / PAGE_SIZE);
+    const page = Math.min(Math.max(pageState['leads'] || 1, 1), totalPages);
+    const start = (page - 1) * PAGE_SIZE;
+    const pageRows = rows.slice(start, start + PAGE_SIZE);
+
     const headers = ['Type', 'Name', 'Details', 'Date'];
-    const html = `<table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => {
+    const html = `<table><thead><tr>${headers.map(h => `<th>${escapeHtml(h)}</th>`).join('')}</tr></thead><tbody>${pageRows.map(r => {
       const date = r.createdAt ? new Date(r.createdAt).toLocaleString() : '-';
       let details = '';
-      if (r._type === 'contact') details = `${r.email} · ${r.service}`;
-      if (r._type === 'car') details = `${r.carModel} · ${r.budget} ${r.budgetCurrency || 'USD'}`;
-      if (r._type === 'property') details = `${r.propertyInterest} · ${r.timeline}`;
-      if (r._type === 'ai') details = `${r.businessName}`;
-      return `<tr><td>${r._type}</td><td>${r.name}</td><td>${details}</td><td>${date}</td></tr>`;
+      if (r._type === 'contact') details = `${escapeHtml(r.email)} · ${escapeHtml(r.service)}`;
+      if (r._type === 'car') details = `${escapeHtml(r.carModel)} · ${escapeHtml(r.budget)} ${escapeHtml(r.budgetCurrency || 'USD')}`;
+      if (r._type === 'property') details = `${escapeHtml(r.propertyInterest)} · ${escapeHtml(r.timeline)}`;
+      if (r._type === 'ai') details = `${escapeHtml(r.businessName)}`;
+      return `<tr><td>${escapeHtml(r._type)}</td><td>${escapeHtml(r.name)}</td><td>${details}</td><td>${escapeHtml(date)}</td></tr>`;
     }).join('')}</tbody></table>`;
     container.innerHTML = html;
+    renderPagination('leads-table-container', page, totalPages, (newPage) => {
+      pageState['leads'] = newPage;
+      loadLeads();
+    });
   } catch (err) {
     container.innerHTML = `<p class="error-message">Error loading leads: ${err.message}</p>`;
   }
@@ -77,7 +101,8 @@ async function loadLeads() {
 
 // Generic table loader
 async function loadTable(type, fields) {
-  const container = document.getElementById(`${type.replace(/-/g, '-')}-table-container`);
+  const containerId = `${type.replace(/-/g, '-')}-table-container`;
+  const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = '<p>Loading...</p>';
   try {
@@ -88,8 +113,16 @@ async function loadTable(type, fields) {
       container.innerHTML = '<p>No items found.</p>';
       return;
     }
-    const html = `<table><thead><tr>${fields.map(f => `<th>${formatHeader(f)}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${items.map(item => `<tr>${fields.map(f => `<td>${formatCell(item, f)}</td>`).join('')}<td class="actions"><button class="btn btn-secondary" onclick="editItem('${type}', '${item.id}')">Edit</button><button class="btn btn-danger" onclick="deleteItem('${type}', '${item.id}')">Delete</button></td></tr>`).join('')}</tbody></table>`;
+    const totalPages = Math.ceil(items.length / PAGE_SIZE);
+    const page = Math.min(Math.max(pageState[type] || 1, 1), totalPages);
+    const start = (page - 1) * PAGE_SIZE;
+    const pageItems = items.slice(start, start + PAGE_SIZE);
+    const html = `<table><thead><tr>${fields.map(f => `<th>${escapeHtml(formatHeader(f))}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${pageItems.map(item => `<tr>${fields.map(f => `<td>${formatCell(item, f)}</td>`).join('')}<td class="actions"><button class="btn btn-secondary" onclick="editItem('${escapeHtml(type)}', '${escapeHtml(item.id)}')">Edit</button><button class="btn btn-danger" onclick="deleteItem('${escapeHtml(type)}', '${escapeHtml(item.id)}')">Delete</button></td></tr>`).join('')}</tbody></table>`;
     container.innerHTML = html;
+    renderPagination(containerId, page, totalPages, (newPage) => {
+      pageState[type] = newPage;
+      loadTabData(type);
+    });
   } catch (err) {
     container.innerHTML = `<p class="error-message">Error loading ${type}: ${err.message}</p>`;
   }
@@ -102,9 +135,29 @@ function formatHeader(key) {
 function formatCell(item, key) {
   const val = item[key];
   if (key === 'published' || key === 'featured') return val ? 'Yes' : 'No';
-  if (key === 'status') return `<span class="badge badge-${val}">${val}</span>`;
-  if (key === 'content') return (val || '').substring(0, 60) + '...';
-  return val || '-';
+  if (key === 'status') return `<span class="badge badge-${escapeHtml(val)}">${escapeHtml(val)}</span>`;
+  if (key === 'content') return escapeHtml((val || '').substring(0, 60)) + '...';
+  return escapeHtml(val || '-');
+}
+
+function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const existing = container.querySelector('.pagination-bar');
+  if (existing) existing.remove();
+  if (totalPages <= 1) return;
+  const bar = document.createElement('div');
+  bar.className = 'pagination-bar';
+  bar.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:1rem;margin-top:1.5rem;';
+  bar.innerHTML = `
+    <button class="btn btn-secondary" ${currentPage <= 1 ? 'disabled' : ''}>← Prev</button>
+    <span style="color:var(--text-muted);">Page ${currentPage} of ${totalPages}</span>
+    <button class="btn btn-secondary" ${currentPage >= totalPages ? 'disabled' : ''}>Next →</button>
+  `;
+  const [prevBtn, nextBtn] = bar.querySelectorAll('button');
+  prevBtn.addEventListener('click', () => onPageChange(currentPage - 1));
+  nextBtn.addEventListener('click', () => onPageChange(currentPage + 1));
+  container.appendChild(bar);
 }
 
 // Modal
@@ -165,9 +218,10 @@ function buildFormFields(type, id) {
       { name: 'badge', label: 'Badge', type: 'text' },
     ],
     'testimonial': [
-      { name: 'name', label: 'Name', type: 'text', required: true },
-      { name: 'role', label: 'Role', type: 'text', required: true },
-      { name: 'text', label: 'Text', type: 'textarea', required: true },
+      { name: 'name', label: 'Project / Client Name', type: 'text', required: true },
+      { name: 'role', label: 'Category / Type', type: 'text', required: true },
+      { name: 'text', label: 'Description', type: 'textarea', required: true },
+      { name: 'projectUrl', label: 'Project Link', type: 'text' },
       { name: 'rating', label: 'Rating', type: 'select', options: ['1', '2', '3', '4', '5'] },
       { name: 'featured', label: 'Featured', type: 'select', options: ['true', 'false'] },
     ],
@@ -183,6 +237,7 @@ function buildFormFields(type, id) {
       { name: 'description', label: 'Description', type: 'textarea' },
       { name: 'coverImageUrl', label: 'Cover Image', type: 'text' },
       { name: 'pdfUrl', label: 'PDF File', type: 'text' },
+      { name: 'gumroadUrl', label: 'Gumroad Store URL', type: 'text' },
       { name: 'publishedYear', label: 'Published Year', type: 'text' },
       { name: 'category', label: 'Category', type: 'text' },
       { name: 'price', label: 'Price', type: 'text' },
@@ -192,25 +247,27 @@ function buildFormFields(type, id) {
 
   const fields = fieldsMap[type] || [];
   return fields.map(f => {
+    const safeLabel = escapeHtml(f.label);
+    const safeName = escapeHtml(f.name);
     if (f.name === 'imageUrl' || f.name === 'coverImageUrl') {
       return `<div class="form-group">
-        <label>${f.label}</label>
-        <input type="text" name="${f.name}" ${f.required ? 'required' : ''}>
+        <label>${safeLabel}</label>
+        <input type="text" name="${safeName}" ${f.required ? 'required' : ''}>
         <input type="file" accept="image/*" onchange="handleImageUpload(this)" style="margin-top:6px">
         <img class="image-preview" style="display:none;margin-top:8px;max-width:200px;max-height:120px;border-radius:4px">
       </div>`;
     }
     if (f.name === 'pdfUrl') {
       return `<div class="form-group">
-        <label>${f.label}</label>
-        <input type="text" name="${f.name}" ${f.required ? 'required' : ''}>
+        <label>${safeLabel}</label>
+        <input type="text" name="${safeName}" ${f.required ? 'required' : ''}>
         <input type="file" accept=".pdf,application/pdf" onchange="handlePdfUpload(this)" style="margin-top:6px">
         <a class="pdf-link" style="display:none;margin-top:8px;color:var(--accent)" target="_blank">View PDF</a>
       </div>`;
     }
-    if (f.type === 'textarea') return `<div class="form-group"><label>${f.label}</label><textarea name="${f.name}"></textarea></div>`;
-    if (f.type === 'select') return `<div class="form-group"><label>${f.label}</label><select name="${f.name}">${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select></div>`;
-    return `<div class="form-group"><label>${f.label}</label><input type="${f.type}" name="${f.name}" ${f.required ? 'required' : ''}></div>`;
+    if (f.type === 'textarea') return `<div class="form-group"><label>${safeLabel}</label><textarea name="${safeName}"></textarea></div>`;
+    if (f.type === 'select') return `<div class="form-group"><label>${safeLabel}</label><select name="${safeName}">${f.options.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('')}</select></div>`;
+    return `<div class="form-group"><label>${safeLabel}</label><input type="${escapeHtml(f.type)}" name="${safeName}" ${f.required ? 'required' : ''}></div>`;
   }).join('') + '<div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>';
 }
 
