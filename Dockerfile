@@ -10,6 +10,9 @@ RUN npm run build
 # Stage 2: Serve with Node.js backend
 FROM node:20-slim
 
+# Force cache bust on every deploy — change this comment to rebuild
+# v20250722-1
+
 WORKDIR /app
 
 # Install OpenSSL — required by Prisma's native query engine
