@@ -141,8 +141,8 @@ app.use(
   })
 );
 
-// Auth routes — strict rate limit on login
-app.post('/api/auth/login', strictLimiter, loginHandler);
+// Auth routes
+app.post('/api/auth/login', loginHandler);
 app.post('/api/auth/logout', logoutHandler);
 
 // Image upload endpoint (protected)
