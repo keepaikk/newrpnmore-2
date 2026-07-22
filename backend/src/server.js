@@ -3,6 +3,7 @@ import session from 'express-session';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,6 +24,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
+
+/* ─── Gzip Compression ─── */
+app.use(compression());
 
 /* ─── Security Headers (Helmet) ─── */
 app.use(helmet({
@@ -203,7 +207,26 @@ app.get('/admin', requireAuthPage, (req, res) => {
 const distPath = path.join(__dirname, '..', '..', 'dist');
 
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  /* Serve static assets with long-term caching (hashed filenames from Vite) */
+  app.use('/assets', express.static(path.join(distPath, 'assets'), {
+    maxAge: '1y',
+    immutable: true,
+  }));
+
+  /* Serve other static files (favicons, images) with shorter cache */
+  app.use(express.static(distPath, {
+    maxAge: '1d',
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
+    },
+  }));
+
+  /* Explicit homepage route */
+  app.get('/', (_req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
 
   // Clean URL aliases for HTML pages
   const pageRoutes = [
@@ -224,16 +247,25 @@ if (fs.existsSync(distPath)) {
     });
   }
 
-  // SPA fallback for everything else (e.g., direct URL visits, refreshes)
+  /* SPA fallback — catch-all for any unmatched route.
+     IMPORTANT: must NOT catch /assets/* or static files.
+     If express.static above didn't find the file, it calls next()
+     and we end up here. We serve index.html for unknown paths
+     (e.g. /blog/some-slug) so the SPA router can handle them. */
   app.get('*', (req, res) => {
-    // Don't fallback for API or admin routes
-    if (req.path.startsWith('/api/') || req.path.startsWith('/admin/') || req.path.startsWith('/uploads/')) {
+    const p = req.path;
+    if (
+      p.startsWith('/api/') ||
+      p.startsWith('/admin/') ||
+      p.startsWith('/uploads/') ||
+      p.startsWith('/assets/')
+    ) {
       return res.status(404).json({ error: 'Not found' });
     }
     res.sendFile(path.join(distPath, 'index.html'));
   });
 } else {
-  app.get('/', (req, res) => {
+  app.get('/', (_req, res) => {
     res.json({ message: 'RPNMore API is running. Build the frontend to serve the website.' });
   });
 }
