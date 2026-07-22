@@ -199,12 +199,18 @@ app.use('/api/cms', (req, res, next) => {
 
 // Admin dashboard static files
 const adminPath = path.join(__dirname, '..', 'admin');
+
+// Allow login page and all its assets (dashboard.css, dashboard.js) without auth
 app.use('/admin', (req, res, next) => {
-  if (req.path === '/login.html' || req.path.startsWith('/dashboard.')) {
-    return next();
-  }
+  // Strip leading slash for easier matching
+  const rel = req.path.replace(/^\//, '');
+  // login.html, dashboard.css, dashboard.js, favicons, etc. are public
+  const isPublic = rel === 'login.html' || rel.startsWith('dashboard') || rel === '';
+  if (isPublic) return next();
   return requireAuthPage(req, res, next);
 }, express.static(adminPath));
+
+// /admin (no trailing slash) redirects to dashboard (requires auth)
 app.get('/admin', requireAuthPage, (req, res) => {
   res.sendFile(path.join(adminPath, 'index.html'));
 });
