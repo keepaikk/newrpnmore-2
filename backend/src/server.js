@@ -61,29 +61,14 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
-/* ─── Rate Limiting ─── */
-const strictLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // 20 login attempts per 15 min — enough for a few typos
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many attempts. Please try again later.' },
-  /* skip rate limit for requests with valid forwarded IPs (Dokploy/nginx) */
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
-});
+/* ─── Rate Limiting ───
+   trust proxy is already set above, so req.ip returns the real client IP
+   behind Dokploy/nginx. No custom keyGenerator needed. */
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200, // generous for a content-heavy site
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
-});
-const leadsLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 50, // 50 lead submissions per hour per IP
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many submissions. Please try again later.' },
-  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 
 app.use(generalLimiter);
@@ -162,8 +147,8 @@ app.post('/api/upload-pdf', requireAuth, pdfUpload.single('file'), (req, res) =>
 // Serve uploaded files statically
 app.use('/uploads', express.static(uploadsDir));
 
-// Leads API — rate limited to prevent spam
-app.use('/api/leads', leadsLimiter, leadsRouter);
+// Leads API
+app.use('/api/leads', leadsRouter);
 
 // Telegram bot webhook
 app.use('/api/telegram', telegramRouter);
