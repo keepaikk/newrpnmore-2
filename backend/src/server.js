@@ -25,6 +25,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+/* Trust proxy so we get the real client IP behind Dokploy/nginx */
+if (IS_PROD) app.set('trust proxy', 1);
+
 /* ─── Gzip Compression ─── */
 app.use(compression());
 
@@ -61,23 +64,26 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 /* ─── Rate Limiting ─── */
 const strictLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
+  max: 20, // 20 login attempts per 15 min — enough for a few typos
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many attempts. Please try again later.' },
+  /* skip rate limit for requests with valid forwarded IPs (Dokploy/nginx) */
+  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200, // generous for a content-heavy site
   standardHeaders: true,
   legacyHeaders: false,
 });
 const leadsLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20,
+  max: 50, // 50 lead submissions per hour per IP
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many submissions. Please try again later.' },
+  keyGenerator: (req) => req.ip || req.connection.remoteAddress,
 });
 
 app.use(generalLimiter);
