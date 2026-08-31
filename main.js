@@ -83,10 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`${API_BASE}/api/hero-images/${page}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.imageUrl) {
+          if (data && data.imageUrl) {
             el.style.backgroundImage = `url('${escapeHtml(data.imageUrl)}')`;
           }
-          if (data.altText && el.alt !== undefined) {
+          if (data && data.altText && el.alt !== undefined) {
             el.alt = data.altText;
           }
         }
@@ -412,7 +412,7 @@ function renderTestimonial(t) {
 function renderBook(book) {
   const safeTitle = escapeHtml(book.title);
   const coverHtml = book.coverImageUrl
-    ? `<img src="${escapeHtml(book.coverImageUrl)}" alt="${safeTitle}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">`
+    ? `<img src="${escapeHtml(book.coverImageUrl)}" alt="${safeTitle}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;">`
     : `<div class="book-cover-placeholder"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span style="font-size:0.85rem;font-weight:600;">Book Cover</span></div>`;
 
   const ctaHtml = book.gumroadUrl

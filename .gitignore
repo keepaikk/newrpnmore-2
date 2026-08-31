@@ -28,3 +28,11 @@ backend/cookies.txt
 # Editor
 .vscode/
 .idea/
+
+# Screenshots / local artifacts
+screenshot*.png
+
+# Skills / agents (local-only)
+.agents/
+.claude/skills/
+skills-lock.json

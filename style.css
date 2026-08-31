@@ -1134,6 +1134,10 @@ header.scrolled .nav-container {
   color: var(--accent-hover);
 }
 
+.section-header {
+  margin-bottom: 3rem;
+}
+
 /* Book Shop Grid */
 .book-grid {
   display: grid;
@@ -1159,7 +1163,7 @@ header.scrolled .nav-container {
 
 .book-cover-wrap {
   position: relative;
-  padding-top: 140%;
+  aspect-ratio: 2 / 3;
   overflow: hidden;
   background: linear-gradient(135deg, #0c1530 0%, #1a3060 50%, #030712 100%);
 }
@@ -1175,17 +1179,16 @@ header.scrolled .nav-container {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 1rem;
   color: var(--accent);
 }
 
 .book-cover-placeholder svg {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   opacity: 0.7;
 }
 
 .book-card-content {
-  padding: 1.25rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
@@ -1202,15 +1205,19 @@ header.scrolled .nav-container {
 .book-card-author {
   font-size: 0.85rem;
   color: var(--accent);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .book-card-desc {
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
   flex-grow: 1;
-  line-height: 1.5;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .book-card-price {

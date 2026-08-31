@@ -119,7 +119,7 @@ app.use(
     name: 'rpnmore.sid',
     cookie: {
       httpOnly: true,
-      secure: IS_PROD,
+      secure: IS_PROD && process.env.SECURE_COOKIES !== 'false',
       sameSite: 'strict',
       maxAge: 1000 * 60 * 60 * 24, // 24 hours
     },
@@ -157,8 +157,7 @@ app.use('/api/telegram', telegramRouter);
 app.get('/api/hero-images/:page', async (req, res) => {
   try {
     const item = await prisma.heroImage.findUnique({ where: { page: req.params.page } });
-    if (!item) return res.status(404).json({ error: 'Not found' });
-    res.json(item);
+    res.json(item || null);
   } catch (err) {
     console.error('[HeroImages] Error:', err.message);
     res.status(500).json({ error: 'Internal server error' });
@@ -190,7 +189,7 @@ app.use('/admin', (req, res, next) => {
   // Strip leading slash for easier matching
   const rel = req.path.replace(/^\//, '');
   // login.html, dashboard.css, dashboard.js, favicons, etc. are public
-  const isPublic = rel === 'login.html' || rel.startsWith('dashboard') || rel === '';
+  const isPublic = rel === 'login.html' || rel === 'login.js' || rel.startsWith('dashboard') || rel === '';
   if (isPublic) return next();
   return requireAuthPage(req, res, next);
 }, express.static(adminPath));

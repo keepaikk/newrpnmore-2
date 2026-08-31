@@ -14,8 +14,6 @@ services:
     build: .
     ports:
       - "3000:3000"
-    env_file:
-      - .env
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://rpnmore:rpnmore_secret@db:5432/rpnmore_db?schema=public
@@ -24,6 +22,7 @@ services:
     volumes:
       - ./public:/app/public:ro
       - ./backend/uploads:/app/backend/uploads
+      - ./.env:/app/.env:ro
 
 volumes:
   postgres_data:
